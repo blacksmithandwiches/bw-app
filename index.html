@@ -282,7 +282,7 @@
     <section id="search" class="hub-section active">
       <div class="search-hero">
         <img src="https://blacksmithandwitches.com/images/bw-emblem.webp" alt="Blacksmith & Witches emblem" style="height: 120px; width: auto; margin-bottom: 8px;">
-        <h1 class="search-title">Blacksmith & Witches Engine</h1>
+        <h1 class="search-title">BW Search Engine</h1>
         <div class="search-box">
           <input type="text" class="search-input" id="searchInput" placeholder="Search the b&w universe, books, media..." onkeyup="handleSearch()">
           <button class="search-btn" onclick="runSearch()">Search</button>
@@ -367,10 +367,11 @@
     <section id="social" class="hub-section">
       <div class="feed-container">
         <div class="post-box">
-          <textarea class="post-input" rows="3" placeholder="Share updates with the b&w community..."></textarea>
-          <button class="post-btn">Post to b&w</button>
+          <textarea id="postText" class="post-input" rows="3" placeholder="Share updates with the b&w community..."></textarea>
+          <button class="post-btn" onclick="addNewPost()">Post to b&w</button>
         </div>
-        <p style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Community posting is being built on <a href="https://blacksmithandwitches.com/board.html" style="color: var(--accent-gold);">Kepler's Board</a> — the house community page.</p>
+        <div id="postFeed" style="margin-top: 16px;"></div>
+        <p style="text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-top: 16px;">Posting here is live, straight from the house database. For the bigger rooms, visit <a href="https://blacksmithandwitches.com/board.html" style="color: var(--accent-gold);">Kepler's Board</a>.</p>
       </div>
     </section>
 
@@ -403,6 +404,7 @@
     <p>&copy; 2026 Blacksmith & Witches (b&w) House Platform. Powered by partner Muse AI.</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     function switchTab(tabId) {
       document.querySelectorAll('.hub-section').forEach(el => el.classList.remove('active'));
@@ -435,6 +437,44 @@
     document.getElementById('searchInput').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') runSearch();
     });
+
+    // --- b&w community feed (Supabase) ---
+    const BW_SUPABASE_URL = 'https://qmamsagrouzkldylxrqk.supabase.co';
+    const BW_SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtYW1zYWdyb3V6a2xkeWx4cnFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0MzMxNDgsImV4cCI6MjExMDAwOTE0OH0.YJKjJbRvJ5XkVAMWuB-1_CAKmNn47smSVy4_I4foj2I';
+    let bwClient = null;
+    try { bwClient = window.supabase.createClient(BW_SUPABASE_URL, BW_SUPABASE_ANON); } catch (e) { bwClient = null; }
+
+    function bwEscape(text) {
+      return String(text).replace(/[&<>"']/g, function(c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    async function loadPosts() {
+      const feed = document.getElementById('postFeed');
+      if (!feed) return;
+      if (!bwClient) { feed.innerHTML = '<p style="text-align:center; color: var(--text-muted);">The community feed could not be reached just now.</p>'; return; }
+      const { data, error } = await bwClient.from('posts').select('*').order('created_at', { ascending: false }).limit(50);
+      if (error) { feed.innerHTML = '<p style="text-align:center; color: var(--text-muted);">The community feed could not be reached just now.</p>'; return; }
+      if (!data || data.length === 0) { feed.innerHTML = '<p style="text-align:center; color: var(--text-muted);">No posts yet — be the first voice in the house.</p>'; return; }
+      feed.innerHTML = data.map(function(p) {
+        const when = new Date(p.created_at).toLocaleString();
+        return '<div class="result-card" style="margin-bottom: 12px;"><h3>' + bwEscape(p.author || 'Traveler') + '</h3><p>' + bwEscape(p.content) + '</p><p style="color: var(--text-muted); font-size: 0.8rem;">' + bwEscape(when) + '</p></div>';
+      }).join('');
+    }
+
+    async function addNewPost() {
+      const box = document.getElementById('postText');
+      if (!box || !bwClient) return;
+      const content = box.value.trim();
+      if (!content) return;
+      const { error } = await bwClient.from('posts').insert([{ content: content, author: 'Traveler' }]);
+      if (error) { alert('Your post could not be saved just now — please try again.'); return; }
+      box.value = '';
+      loadPosts();
+    }
+
+    loadPosts();
   </script>
 </body>
 </html>
