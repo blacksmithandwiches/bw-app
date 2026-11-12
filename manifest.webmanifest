@@ -1,0 +1,15 @@
+{
+  "name": "Blacksmith & Witches — BW Search",
+  "short_name": "BW Search",
+  "description": "One door to the whole house: the books, the animated series, the Catalogue, the Reading Room, the free Resistance Kit and BlacksmithPay.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#005BBB",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

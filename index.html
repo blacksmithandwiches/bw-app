@@ -256,6 +256,9 @@
       margin-top: auto;
     }
   </style>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#005BBB">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 </head>
 <body>
 
@@ -477,5 +480,10 @@
 
     loadPosts();
   </script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
 </body>
 </html>
